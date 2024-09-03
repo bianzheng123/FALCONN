@@ -6,7 +6,7 @@
 #include "gtest/gtest.h"
 
 #include "falconn/core/composite_hash_table.h"
-#include "falconn/core/cosine_distance.h"
+#include "falconn/core/euclidean_distance.h"
 #include "falconn/core/data_storage.h"
 #include "falconn/core/hyperplane_hash.h"
 #include "falconn/core/lsh_table.h"
@@ -16,8 +16,8 @@
 namespace fc = falconn::core;
 namespace ft = falconn::test;
 
-using fc::CosineDistanceDense;
-using fc::CosineDistanceSparse;
+using fc::EuclideanDistanceDense;
+using fc::EuclideanDistanceSparse;
 using fc::ArrayDataStorage;
 using fc::DynamicCompositeHashTable;
 using fc::DynamicLinearProbingHashTable;
@@ -83,7 +83,7 @@ TEST(NNQueryTest, DenseTest1) {
   LSHTableType lsh_table(&lsh_object, &hash_table, points, 1);
   LSHTableType::Query query(lsh_table);
   NearestNeighborQuery<LSHTableType::Query, DenseVector, int32_t, DenseVector,
-                       float, CosineDistanceDense<float>, ArrayDataStorageType>
+                       float, EuclideanDistanceDense<float>, ArrayDataStorageType>
       nn_query(&query, data_storage);
 
   int res1 = nn_query.find_nearest_neighbor(p1, p1, l, -1);
@@ -147,7 +147,7 @@ TEST(NNQueryTest, SparseTest1) {
   LSHTableType lsh_table(&lsh_object, &hash_table, points, 1);
   LSHTableType::Query query(lsh_table);
   NearestNeighborQuery<LSHTableType::Query, SparseVector, int32_t, SparseVector,
-                       float, CosineDistanceSparse<float>, ArrayDataStorageType>
+                       float, EuclideanDistanceSparse<float>, ArrayDataStorageType>
       nn_query(&query, data_storage);
 
   int res1 = nn_query.find_nearest_neighbor(p1, p1, l, -1);
@@ -196,7 +196,7 @@ TEST(NNQueryTest, MultiprobeTest1) {
   LSHTableType lsh_table(&lsh_object, &hash_table, points, 1);
   LSHTableType::Query query(lsh_table);
   NearestNeighborQuery<LSHTableType::Query, DenseVector, int32_t, DenseVector,
-                       float, CosineDistanceDense<float>, ArrayDataStorageType>
+                       float, EuclideanDistanceDense<float>, ArrayDataStorageType>
       nn_query(&query, data_storage);
 
   int res1 = nn_query.find_nearest_neighbor(p1, p1, 2 << k, -1);
@@ -253,7 +253,7 @@ TEST(NNQueryTest, FindNearNeighborsTest1) {
   LSHTableType lsh_table(&lsh_object, &hash_table, points, 1);
   LSHTableType::Query query(lsh_table);
   NearestNeighborQuery<LSHTableType::Query, DenseVector, int32_t, DenseVector,
-                       float, CosineDistanceDense<float>, ArrayDataStorageType>
+                       float, EuclideanDistanceDense<float>, ArrayDataStorageType>
       nn_query(&query, data_storage);
 
   double threshold = -0.5;
@@ -332,7 +332,7 @@ TEST(NNQueryTest, KNNTest1) {
   LSHTableType lsh_table(&lsh_object, &hash_table, points, 1);
   LSHTableType::Query query(lsh_table);
   NearestNeighborQuery<LSHTableType::Query, DenseVector, int32_t, DenseVector,
-                       float, CosineDistanceDense<float>, ArrayDataStorageType>
+                       float, EuclideanDistanceDense<float>, ArrayDataStorageType>
       nn_query(&query, data_storage);
 
   vector<int32_t> res1;
@@ -384,7 +384,7 @@ TEST(LSHTableTest, DynamicLSHTableDenseTest1) {
   CompositeTableType hash_table(l, &table_factory);
   DynamicLSHTable<DenseVector,
                   float,
-                  CosineDistanceDense<float>,
+                  EuclideanDistanceDense<float>,
                   HyperplaneHashDense<float>,
                   uint32_t,
                   CompositeTableType> lsh_table(&lsh_object,

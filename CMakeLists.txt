@@ -81,9 +81,9 @@ add_executable(glove src/examples/glove/glove.cc)
 target_include_directories(glove PRIVATE src/include external/eigen)
 target_link_libraries(glove GTest::gtest_main)
 
-add_executable(main src/examples/self/main.cc)
-target_include_directories(main PRIVATE src/include external/eigen)
-target_link_libraries(main GTest::gtest_main)
+#add_executable(main src/examples/self/main.cc)
+#target_include_directories(main PRIVATE src/include external/eigen)
+#target_link_libraries(main GTest::gtest_main)
 
 #include(GoogleTest)
 #gtest_discover_tests(lsh_table_test)

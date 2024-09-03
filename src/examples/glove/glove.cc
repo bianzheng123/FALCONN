@@ -17,9 +17,6 @@
  *   - NUM_HASH_BITS, that controls the number of buckets per table,
  *     usually it should be around the binary logarithm of the number of data
  *     points
- *   - NUM_ROTATIONS, which controls the number of pseudo-random rotations for
- *     the cross-polytope LSH, set it to 1 for the dense data, and 2 for the
- *     sparse data (for GloVe we set it to 1)
  *
  * The code sets the number of probes automatically. Also, it recenters the
  * dataset for improved partitioning. Since after recentering vectors are not
@@ -77,7 +74,6 @@ const int NUM_QUERIES = 1000;
 const int SEED = 4057218;
 const int NUM_HASH_TABLES = 50;
 const int NUM_HASH_BITS = 18;
-const int NUM_ROTATIONS = 1;
 
 /*
  * An auxiliary function that reads a point from a binary file that is produced
@@ -296,11 +292,10 @@ int main() {
     // setting parameters and constructing the table
     LSHConstructionParameters params;
     params.dimension = dataset[0].size();
-    params.lsh_family = LSHFamily::CrossPolytope;
+    params.lsh_family = LSHFamily::Hyperplane;
     params.l = NUM_HASH_TABLES;
     params.distance_function = DistanceFunction::EuclideanSquared;
     compute_number_of_hash_functions<Point>(NUM_HASH_BITS, &params);
-    params.num_rotations = NUM_ROTATIONS;
     // we want to use all the available threads to set up
     params.num_setup_threads = 0;
     params.storage_hash_table = StorageHashTable::BitPackedFlatHashTable;

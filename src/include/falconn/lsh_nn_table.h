@@ -270,24 +270,7 @@ enum class LSHFamily {
   /// Moses S. Charikar
   /// STOC 2002
   ///
-  Hyperplane = 1,
-
-  ///
-  /// The cross polytope hash first proposed in
-  ///
-  /// "Spherical LSH for Approximate Nearest Neighbor Search on Unit
-  //   Hypersphere",
-  /// Kengo Terasawa, Yuzuru Tanaka
-  /// WADS 2007
-  ///
-  /// Our implementation uses the algorithmic improvements described in
-  ///
-  /// "Practical and Optimal LSH for Angular Distance",
-  /// Alexandr Andoni, Piotr Indyk, Thijs Laarhoven, Ilya Razenshteyn, Ludwig
-  ///   Schmidt
-  /// NIPS 2015
-  ///
-  CrossPolytope = 2
+  Hyperplane = 1
 };
 
 ///
@@ -299,12 +282,6 @@ enum class LSHFamily {
 ///
 enum class DistanceFunction {
   Unknown = 0,
-
-  ///
-  /// The distance between p and q is -<p, q>. For unit vectors p and q,
-  /// this means that the nearest neighbor to q has the smallest angle with q.
-  ///
-  NegativeInnerProduct = 1,
 
   ///
   /// The distance is the **squared** Euclidean distance (same order as the
@@ -384,28 +361,6 @@ struct LSHConstructionParameters {
   /// Randomness seed.
   ///
   uint64_t seed = 409556018;
-
-  // Optional parameters
-  ///
-  /// Dimension of the last of the k cross-polytopes. Required
-  /// only for the cross-polytope hash.
-  ///
-  int_fast32_t last_cp_dimension = -1;
-  ///
-  /// Number of pseudo-random rotations. Required only for the
-  /// cross-polytope hash.
-  ///
-  /// For sparse data, it is recommended to set num_rotations to 2.
-  /// For sufficiently dense data, 1 rotation usually suffices.
-  ///
-  int_fast32_t num_rotations = -1;
-  ///
-  /// Intermediate dimension for feature hashing of sparse data. Ignored for
-  /// the hyperplane hash. A smaller feature hashing dimension leads to faster
-  /// hash computations, but the quality of the hash also degrades.
-  /// The value -1 indicates that no feature hashing is performed.
-  ///
-  int_fast32_t feature_hashing_dimension = -1;
 };
 
 ///
@@ -415,11 +370,8 @@ struct LSHConstructionParameters {
 /// contain valid values for the following fields:
 ///   - lsh_family
 ///   - dimension (for the cross polytope hash)
-///   - feature_hashing_dimension (for the cross polytope hash with sparse
-///     vectors)
 /// The function will then set the following fields of params:
 ///   - k
-///   - last_cp_dim (for the cross polytope hash, both dense and sparse)
 ///
 template <typename PointType>
 void compute_number_of_hash_functions(int_fast32_t number_of_hash_bits,

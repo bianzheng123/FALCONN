@@ -119,7 +119,7 @@ TEST(WrapperTest, DenseHPTest1) {
   LSHConstructionParameters params;
   params.dimension = dim;
   params.lsh_family = LSHFamily::Hyperplane;
-  params.distance_function = DistanceFunction::NegativeInnerProduct;
+  params.distance_function = DistanceFunction::EuclideanSquared;
   params.storage_hash_table = StorageHashTable::BitPackedFlatHashTable;
   params.k = 2;
   params.l = 4;
@@ -132,13 +132,11 @@ TEST(WrapperTest, DenseCPTest1) {
   int dim = 4;
   LSHConstructionParameters params;
   params.dimension = dim;
-  params.lsh_family = LSHFamily::CrossPolytope;
-  params.distance_function = DistanceFunction::NegativeInnerProduct;
+  params.lsh_family = LSHFamily::Hyperplane;
+  params.distance_function = DistanceFunction::EuclideanSquared;
   params.storage_hash_table = StorageHashTable::BitPackedFlatHashTable;
   params.k = 2;
   params.l = 8;
-  params.last_cp_dimension = dim;
-  params.num_rotations = 3;
   params.num_setup_threads = 0;
 
   basic_test_dense_1(params);
@@ -149,7 +147,7 @@ TEST(WrapperTest, SparseHPTest1) {
   LSHConstructionParameters params;
   params.dimension = dim;
   params.lsh_family = LSHFamily::Hyperplane;
-  params.distance_function = DistanceFunction::NegativeInnerProduct;
+  params.distance_function = DistanceFunction::EuclideanSquared;
   params.storage_hash_table = StorageHashTable::BitPackedFlatHashTable;
   params.k = 2;
   params.l = 4;
@@ -162,14 +160,11 @@ TEST(WrapperTest, SparseCPTest1) {
   int dim = 100;
   LSHConstructionParameters params;
   params.dimension = dim;
-  params.lsh_family = LSHFamily::CrossPolytope;
-  params.distance_function = DistanceFunction::NegativeInnerProduct;
+  params.lsh_family = LSHFamily::Hyperplane;
+  params.distance_function = DistanceFunction::EuclideanSquared;
   params.storage_hash_table = StorageHashTable::BitPackedFlatHashTable;
   params.k = 2;
   params.l = 4;
-  params.feature_hashing_dimension = 8;
-  params.last_cp_dimension = 8;
-  params.num_rotations = 3;
   params.num_setup_threads = 0;
 
   basic_test_sparse_1(params);
@@ -180,7 +175,7 @@ TEST(WrapperTest, FlatHashTableTest1) {
   LSHConstructionParameters params;
   params.dimension = dim;
   params.lsh_family = LSHFamily::Hyperplane;
-  params.distance_function = DistanceFunction::NegativeInnerProduct;
+  params.distance_function = DistanceFunction::EuclideanSquared;
   params.storage_hash_table = StorageHashTable::FlatHashTable;
   params.k = 2;
   params.l = 4;
@@ -194,7 +189,7 @@ TEST(WrapperTest, BitPackedFlatHashTableTest1) {
   LSHConstructionParameters params;
   params.dimension = dim;
   params.lsh_family = LSHFamily::Hyperplane;
-  params.distance_function = DistanceFunction::NegativeInnerProduct;
+  params.distance_function = DistanceFunction::EuclideanSquared;
   params.storage_hash_table = StorageHashTable::BitPackedFlatHashTable;
   params.k = 2;
   params.l = 4;
@@ -208,7 +203,7 @@ TEST(WrapperTest, STLHashTableTest1) {
   LSHConstructionParameters params;
   params.dimension = dim;
   params.lsh_family = LSHFamily::Hyperplane;
-  params.distance_function = DistanceFunction::NegativeInnerProduct;
+  params.distance_function = DistanceFunction::EuclideanSquared;
   params.storage_hash_table = StorageHashTable::STLHashTable;
   params.k = 2;
   params.l = 4;
@@ -222,7 +217,7 @@ TEST(WrapperTest, LinearProbingHashTableTest1) {
   LSHConstructionParameters params;
   params.dimension = dim;
   params.lsh_family = LSHFamily::Hyperplane;
-  params.distance_function = DistanceFunction::NegativeInnerProduct;
+  params.distance_function = DistanceFunction::EuclideanSquared;
   params.storage_hash_table = StorageHashTable::LinearProbingHashTable;
   params.k = 2;
   params.l = 4;
@@ -242,37 +237,31 @@ TEST(WrapperTest, ComputeNumberOfHashFunctionsTest) {
   compute_number_of_hash_functions<VecDense>(5, &params);
   EXPECT_EQ(5, params.k);
 
-  params.lsh_family = LSHFamily::CrossPolytope;
+  params.lsh_family = LSHFamily::Hyperplane;
   compute_number_of_hash_functions<VecDense>(5, &params);
   EXPECT_EQ(1, params.k);
-  EXPECT_EQ(16, params.last_cp_dimension);
 
   params.dimension = 100;
   params.lsh_family = LSHFamily::Hyperplane;
   compute_number_of_hash_functions<VecSparse>(8, &params);
   EXPECT_EQ(8, params.k);
 
-  params.lsh_family = LSHFamily::CrossPolytope;
-  params.feature_hashing_dimension = 32;
+  params.lsh_family = LSHFamily::Hyperplane;
   compute_number_of_hash_functions<VecSparse>(9, &params);
   EXPECT_EQ(2, params.k);
-  EXPECT_EQ(4, params.last_cp_dimension);
 }
 
 TEST(WrapperTest, GetDefaultParametersTest1) {
   typedef DenseVector<float> Vec;
 
   LSHConstructionParameters params = get_default_parameters<Vec>(
-      1000000, 128, DistanceFunction::NegativeInnerProduct, true);
+      1000000, 128, DistanceFunction::EuclideanSquared, true);
 
-  EXPECT_EQ(1, params.num_rotations);
-  EXPECT_EQ(-1, params.feature_hashing_dimension);
   EXPECT_EQ(10, params.l);
   EXPECT_EQ(128, params.dimension);
-  EXPECT_EQ(DistanceFunction::NegativeInnerProduct, params.distance_function);
-  EXPECT_EQ(LSHFamily::CrossPolytope, params.lsh_family);
+  EXPECT_EQ(DistanceFunction::EuclideanSquared, params.distance_function);
+  EXPECT_EQ(LSHFamily::Hyperplane, params.lsh_family);
   EXPECT_EQ(3, params.k);
-  EXPECT_EQ(2, params.last_cp_dimension);
   EXPECT_EQ(StorageHashTable::BitPackedFlatHashTable,
             params.storage_hash_table);
   EXPECT_EQ(0, params.num_setup_threads);
@@ -282,10 +271,8 @@ TEST(WrapperTest, GetDefaultParametersTest2) {
   typedef SparseVector<float> Vec;
 
   LSHConstructionParameters params = get_default_parameters<Vec>(
-      1000000, 100000, DistanceFunction::NegativeInnerProduct, true);
+      1000000, 100000, DistanceFunction::EuclideanSquared, true);
 
-  EXPECT_EQ(2, params.num_rotations);
-  EXPECT_EQ(1024, params.feature_hashing_dimension);
   EXPECT_EQ(0, params.num_setup_threads);
   EXPECT_EQ(StorageHashTable::BitPackedFlatHashTable,
             params.storage_hash_table);

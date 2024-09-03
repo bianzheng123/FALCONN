@@ -183,7 +183,7 @@ int main() {
     // TODO: make this a program argument (should we use a parsing library?)
     int num_query_threads = 1;
     StorageHashTable storage_hash_table = StorageHashTable::FlatHashTable;
-    DistanceFunction distance_function = DistanceFunction::NegativeInnerProduct;
+    DistanceFunction distance_function = DistanceFunction::EuclideanSquared;
 
     cout << sepline << endl;
     cout << "FALCONN C++ random data benchmark" << endl << endl;
@@ -297,13 +297,11 @@ int main() {
     // Cross polytope hashing
     LSHConstructionParameters params_cp;
     params_cp.dimension = d;
-    params_cp.lsh_family = LSHFamily::CrossPolytope;
+    params_cp.lsh_family = LSHFamily::Hyperplane;
     params_cp.distance_function = distance_function;
     params_cp.storage_hash_table = storage_hash_table;
     params_cp.k = 3;
     params_cp.l = num_tables;
-    params_cp.last_cp_dimension = 16;
-    params_cp.num_rotations = 3;
     params_cp.num_setup_threads = num_setup_threads;
     params_cp.seed = seed ^ 833840234;
     int num_probes_cp = 896;
@@ -318,8 +316,6 @@ int main() {
     double cp_construction_time = cp_construction.elapsed_seconds();
 
     cout << "k = " << params_cp.k << endl;
-    cout << "last_cp_dim = " << params_cp.last_cp_dimension << endl;
-    cout << "num_rotations = " << params_cp.num_rotations << endl;
     cout << "l = " << params_cp.l << endl;
     cout << "Number of probes = " << num_probes_cp << endl;
     cout << "Construction time: " << cp_construction_time << " seconds" << endl
