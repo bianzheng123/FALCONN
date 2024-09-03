@@ -171,7 +171,7 @@ int main() {
         "-";
 
     // Data set parameters
-    int n = 1000000;             // number of data points
+    int n = 100000;             // number of data points
     int d = 128;                 // dimension
     int num_queries = 1000;      // number of query points
     double r = sqrt(2.0) / 2.0;  // distance to planted query

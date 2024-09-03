@@ -11,3 +11,7 @@ src/examples/glove/glove
 src/examples/glove/dataset
 src/python/test/.cache
 src/python/test/__pycache__
+/cmake-build-debug/
+/build/
+/src/examples/glove/dataset/
+.idea/
