@@ -26,7 +26,7 @@
  * unit anymore we should use the Euclidean distance in the data structure.
  */
 
-#include <falconn/lsh_nn_table.h>
+#include "include/lsh_nn_table.hpp"
 
 #include <algorithm>
 #include <chrono>
