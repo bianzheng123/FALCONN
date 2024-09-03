@@ -15,3 +15,4 @@ src/python/test/__pycache__
 /build/
 /src/examples/glove/dataset/
 .idea/
+/src/examples/self/main
