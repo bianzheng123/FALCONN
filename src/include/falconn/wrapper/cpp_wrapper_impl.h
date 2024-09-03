@@ -16,8 +16,6 @@
 #include "../core/hyperplane_hash.h"
 #include "../core/lsh_table.h"
 #include "../core/nn_query.h"
-#include "../core/probing_hash_table.h"
-#include "../core/stl_hash_table.h"
 
 namespace falconn {
     namespace wrapper {
@@ -32,17 +30,6 @@ namespace falconn {
             typedef core::EuclideanDistanceDense<CoordinateType> EuclideanDistance;
             template<typename HashType>
             using HPHash = core::HyperplaneHashDense<CoordinateType, HashType>;
-
-        };
-
-        template<typename CoordinateType, typename IndexType>
-        class PointTypeTraitsInternal<SparseVector<CoordinateType, IndexType>> {
-        public:
-            typedef core::EuclideanDistanceSparse<CoordinateType, IndexType>
-                    EuclideanDistance;
-            template<typename HashType>
-            using HPHash =
-                    core::HyperplaneHashSparse<CoordinateType, HashType, IndexType>;
 
         };
 
@@ -71,20 +58,6 @@ namespace falconn {
             }
         };
 
-        template<typename CoordinateType, typename IndexType>
-        struct ComputeNumberOfHashFunctions<SparseVector<CoordinateType, IndexType>> {
-            static void compute(int_fast32_t number_of_hash_bits,
-                                LSHConstructionParameters *params) {
-                if (params->lsh_family == LSHFamily::Hyperplane) {
-                    params->k = number_of_hash_bits;
-                } else {
-                    throw LSHNNTableSetupError(
-                            "Cannot set paramters for unknown hash "
-                            "family.");
-                }
-            }
-        };
-
         template<typename PointType>
         struct ComputeNumberOfHashBits {
             static int_fast32_t compute(const LSHConstructionParameters &) {
@@ -99,24 +72,6 @@ namespace falconn {
 
         template<typename CoordinateType>
         struct ComputeNumberOfHashBits<DenseVector<CoordinateType>> {
-            static int_fast32_t compute(const LSHConstructionParameters &params) {
-                if (params.k <= 0) {
-                    throw LSHNNTableSetupError(
-                            "Number of hash functions k must be at least "
-                            "1 to determine the number of hash bits.");
-                }
-                if (params.lsh_family == LSHFamily::Hyperplane) {
-                    return params.k;
-                } else {
-                    throw LSHNNTableSetupError(
-                            "Cannot compute number of hash bits for "
-                            "unknown hash family.");
-                }
-            }
-        };
-
-        template<typename CoordinateType, typename IndexType>
-        struct ComputeNumberOfHashBits<SparseVector<CoordinateType, IndexType>> {
             static int_fast32_t compute(const LSHConstructionParameters &params) {
                 if (params.k <= 0) {
                     throw LSHNNTableSetupError(
@@ -168,32 +123,6 @@ namespace falconn {
                     ++number_of_hash_bits;
                 }
                 compute_number_of_hash_functions<DenseVector<CoordinateType>>(
-                        number_of_hash_bits, &result);
-
-                return result;
-            }
-        };
-
-        template<typename CoordinateType>
-        struct GetDefaultParameters<SparseVector<CoordinateType>> {
-            static LSHConstructionParameters get(int_fast64_t dataset_size,
-                                                 int_fast32_t dimension,
-                                                 DistanceFunction distance_function,
-                                                 bool) {
-                LSHConstructionParameters result;
-                result.dimension = dimension;
-                result.distance_function = distance_function;
-                result.lsh_family = LSHFamily::Hyperplane;
-
-                result.l = 10;
-                result.storage_hash_table = StorageHashTable::BitPackedFlatHashTable;
-                result.num_setup_threads = 0;
-
-                int_fast32_t number_of_hash_bits = 1;
-                while ((1 << (number_of_hash_bits + 2)) <= dataset_size) {
-                    ++number_of_hash_bits;
-                }
-                compute_number_of_hash_functions<SparseVector<CoordinateType>>(
                         number_of_hash_bits, &result);
 
                 return result;
@@ -630,31 +559,6 @@ namespace falconn {
                     typedef core::BitPackedFlatHashTable<HashType> HashTable;
                     std::unique_ptr<typename HashTable::Factory> factory(
                             new typename HashTable::Factory(1 << num_bits_, n_));
-
-                    typedef core::StaticCompositeHashTable<HashType, KeyType, HashTable>
-                            CompositeTable;
-                    std::unique_ptr<CompositeTable> composite_table(
-                            new CompositeTable(params_.l, factory.get()));
-                    setup4(std::tuple_cat(std::move(vals),
-                                          std::make_tuple(std::move(factory)),
-                                          std::make_tuple(std::move(composite_table))));
-                } else if (params_.storage_hash_table == StorageHashTable::STLHashTable) {
-                    typedef core::STLHashTable<HashType> HashTable;
-                    std::unique_ptr<typename HashTable::Factory> factory(
-                            new typename HashTable::Factory());
-
-                    typedef core::StaticCompositeHashTable<HashType, KeyType, HashTable>
-                            CompositeTable;
-                    std::unique_ptr<CompositeTable> composite_table(
-                            new CompositeTable(params_.l, factory.get()));
-                    setup4(std::tuple_cat(std::move(vals),
-                                          std::make_tuple(std::move(factory)),
-                                          std::make_tuple(std::move(composite_table))));
-                } else if (params_.storage_hash_table ==
-                           StorageHashTable::LinearProbingHashTable) {
-                    typedef core::StaticLinearProbingHashTable<HashType, KeyType> HashTable;
-                    std::unique_ptr<typename HashTable::Factory> factory(
-                            new typename HashTable::Factory(2 * n_));
 
                     typedef core::StaticCompositeHashTable<HashType, KeyType, HashTable>
                             CompositeTable;

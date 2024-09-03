@@ -8,56 +8,58 @@
 #include <Eigen/Dense>
 
 namespace falconn {
-namespace core {
+    namespace core {
 
-template <typename PointType>
-class StdVectorPrefetcher {
- public:
-  // Parameters are points and prefetch_index.
-  void prefetch(const std::vector<PointType>&, int_fast64_t) {
-    static_assert(FalseStruct<PointType>::value,
-                  "No prefetcher implemented for this point type.");
-  }
+        template<typename PointType>
+        class StdVectorPrefetcher {
+        public:
+            // Parameters are points and prefetch_index.
+            void prefetch(const std::vector<PointType> &, int_fast64_t) {
+                static_assert(FalseStruct<PointType>::value,
+                              "No prefetcher implemented for this point type.");
+            }
 
- private:
-  template <typename PT>
-  struct FalseStruct : std::false_type {};
-};
+        private:
+            template<typename PT>
+            struct FalseStruct : std::false_type {
+            };
+        };
 
-template <typename CoordinateType>
-class StdVectorPrefetcher<
-    Eigen::Matrix<CoordinateType, Eigen::Dynamic, 1, Eigen::ColMajor>> {
- public:
-  typedef Eigen::Matrix<CoordinateType, Eigen::Dynamic, 1, Eigen::ColMajor>
-      PointType;
+        template<typename CoordinateType>
+        class StdVectorPrefetcher<
+                Eigen::Matrix<CoordinateType, Eigen::Dynamic, 1, Eigen::ColMajor>> {
+        public:
+            typedef Eigen::Matrix<CoordinateType, Eigen::Dynamic, 1, Eigen::ColMajor>
+                    PointType;
 
-  void prefetch(const std::vector<PointType>& points,
-                int_fast64_t prefetch_index) {
-    __builtin_prefetch((points[prefetch_index]).data(), 0, 1);
-  }
-};
+            void prefetch(const std::vector<PointType> &points,
+                          int_fast64_t prefetch_index) {
+                __builtin_prefetch((points[prefetch_index]).data(), 0, 1);
+            }
+        };
 
-template <typename CoordinateType, typename IndexType>
-class StdVectorPrefetcher<std::vector<std::pair<IndexType, CoordinateType>>> {
- public:
-  typedef std::vector<std::pair<IndexType, CoordinateType>> PointType;
-  /*DefaultPrefetcher() {
-    printf("In sparse prefetcher.\n");
-  }*/
+        template<typename CoordinateType, typename IndexType>
+        class StdVectorPrefetcher<std::vector<std::pair<IndexType, CoordinateType>>> {
+        public:
+            typedef std::vector<std::pair<IndexType, CoordinateType>> PointType;
 
-  void prefetch(const std::vector<PointType>& points,
-                int_fast64_t prefetch_index) {
-    __builtin_prefetch((points[prefetch_index]).data(), 0, 1);
-  }
-};
+            /*DefaultPrefetcher() {
+              printf("In sparse prefetcher.\n");
+            }*/
 
-template <typename T>
-class PlainArrayPrefetcher {
- public:
-  void prefetch(const T* p) { __builtin_prefetch(p, 0, 1); }
-};
+            void prefetch(const std::vector<PointType> &points,
+                          int_fast64_t prefetch_index) {
+                __builtin_prefetch((points[prefetch_index]).data(), 0, 1);
+            }
+        };
 
-}  // namespace core
+        template<typename T>
+        class PlainArrayPrefetcher {
+        public:
+            void prefetch(const T *p) { __builtin_prefetch(p, 0, 1); }
+        };
+
+    }  // namespace core
 }  // namespace falconn
 
 #endif

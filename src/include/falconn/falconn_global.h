@@ -49,30 +49,6 @@ struct PointTypeTraits<DenseVector<CoordinateType>> {
 };
 
 ///
-/// Type for sparse points / vectors. The coordinate type can be either float
-/// or double (i.e., use SparseVector<float> or SparseVector<double>). In most
-/// cases, float (single precision) should be sufficient.
-///
-/// The elements of the vector must be sorted by the index (the first
-/// component of the pair).
-///
-/// Optionally, you can also change the type of the coordinate indices. This
-/// might be useful if you have indices that fit into an int16_t and you want
-/// to save memory.
-///
-template <typename CoordinateType, typename IndexType = int32_t>
-using SparseVector = std::vector<std::pair<IndexType, CoordinateType>>;
-
-///
-/// Traits class for accessing the corresponding scalar type.
-///
-template <typename CoordinateType, typename IndexT>
-struct PointTypeTraits<SparseVector<CoordinateType, IndexT>> {
-  typedef CoordinateType ScalarType;
-  typedef IndexT IndexType;
-};
-
-///
 /// Data structure for point query statistics
 ///
 struct QueryStatistics {

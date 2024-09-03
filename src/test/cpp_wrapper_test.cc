@@ -16,7 +16,6 @@ using falconn::LSHNearestNeighborTable;
 using falconn::LSHNearestNeighborQuery;
 using falconn::LSHNearestNeighborQueryPool;
 using falconn::get_default_parameters;
-using falconn::SparseVector;
 using falconn::StorageHashTable;
 using std::make_pair;
 using std::unique_ptr;
@@ -82,38 +81,6 @@ void basic_test_dense_1(const LSHConstructionParameters& params) {
   EXPECT_EQ(1, res4);
 }
 
-void basic_test_sparse_1(const LSHConstructionParameters& params) {
-  typedef SparseVector<float> Point;
-  Point p1;
-  p1.push_back(make_pair(24, 1.0));
-  Point p2;
-  p2.push_back(make_pair(7, 0.8));
-  p2.push_back(make_pair(24, 0.6));
-  Point p3;
-  p3.push_back(make_pair(50, 1.0));
-  vector<Point> points;
-  points.push_back(p1);
-  points.push_back(p2);
-  points.push_back(p3);
-
-  unique_ptr<LSHNearestNeighborTable<Point>> table(
-      construct_table<Point>(points, params));
-  unique_ptr<LSHNearestNeighborQuery<Point>> query(
-      table->construct_query_object());
-
-  int32_t res1 = query->find_nearest_neighbor(p1);
-  EXPECT_EQ(0, res1);
-  int32_t res2 = query->find_nearest_neighbor(p2);
-  EXPECT_EQ(1, res2);
-  int32_t res3 = query->find_nearest_neighbor(p3);
-  EXPECT_EQ(2, res3);
-
-  Point p4;
-  p4.push_back(make_pair(7, 1.0));
-  int32_t res4 = query->find_nearest_neighbor(p4);
-  EXPECT_EQ(1, res4);
-}
-
 TEST(WrapperTest, DenseHPTest1) {
   int dim = 4;
   LSHConstructionParameters params;
@@ -140,34 +107,6 @@ TEST(WrapperTest, DenseCPTest1) {
   params.num_setup_threads = 0;
 
   basic_test_dense_1(params);
-}
-
-TEST(WrapperTest, SparseHPTest1) {
-  int dim = 100;
-  LSHConstructionParameters params;
-  params.dimension = dim;
-  params.lsh_family = LSHFamily::Hyperplane;
-  params.distance_function = DistanceFunction::EuclideanSquared;
-  params.storage_hash_table = StorageHashTable::BitPackedFlatHashTable;
-  params.k = 2;
-  params.l = 4;
-  params.num_setup_threads = 0;
-
-  basic_test_sparse_1(params);
-}
-
-TEST(WrapperTest, SparseCPTest1) {
-  int dim = 100;
-  LSHConstructionParameters params;
-  params.dimension = dim;
-  params.lsh_family = LSHFamily::Hyperplane;
-  params.distance_function = DistanceFunction::EuclideanSquared;
-  params.storage_hash_table = StorageHashTable::BitPackedFlatHashTable;
-  params.k = 2;
-  params.l = 4;
-  params.num_setup_threads = 0;
-
-  basic_test_sparse_1(params);
 }
 
 TEST(WrapperTest, FlatHashTableTest1) {
@@ -198,37 +137,8 @@ TEST(WrapperTest, BitPackedFlatHashTableTest1) {
   basic_test_dense_1(params);
 }
 
-TEST(WrapperTest, STLHashTableTest1) {
-  int dim = 4;
-  LSHConstructionParameters params;
-  params.dimension = dim;
-  params.lsh_family = LSHFamily::Hyperplane;
-  params.distance_function = DistanceFunction::EuclideanSquared;
-  params.storage_hash_table = StorageHashTable::STLHashTable;
-  params.k = 2;
-  params.l = 4;
-  params.num_setup_threads = 0;
-
-  basic_test_dense_1(params);
-}
-
-TEST(WrapperTest, LinearProbingHashTableTest1) {
-  int dim = 4;
-  LSHConstructionParameters params;
-  params.dimension = dim;
-  params.lsh_family = LSHFamily::Hyperplane;
-  params.distance_function = DistanceFunction::EuclideanSquared;
-  params.storage_hash_table = StorageHashTable::LinearProbingHashTable;
-  params.k = 2;
-  params.l = 4;
-  params.num_setup_threads = 0;
-
-  basic_test_dense_1(params);
-}
-
 TEST(WrapperTest, ComputeNumberOfHashFunctionsTest) {
   typedef DenseVector<float> VecDense;
-  typedef SparseVector<float> VecSparse;
 
   LSHConstructionParameters params;
   params.dimension = 10;
@@ -240,15 +150,6 @@ TEST(WrapperTest, ComputeNumberOfHashFunctionsTest) {
   params.lsh_family = LSHFamily::Hyperplane;
   compute_number_of_hash_functions<VecDense>(5, &params);
   EXPECT_EQ(1, params.k);
-
-  params.dimension = 100;
-  params.lsh_family = LSHFamily::Hyperplane;
-  compute_number_of_hash_functions<VecSparse>(8, &params);
-  EXPECT_EQ(8, params.k);
-
-  params.lsh_family = LSHFamily::Hyperplane;
-  compute_number_of_hash_functions<VecSparse>(9, &params);
-  EXPECT_EQ(2, params.k);
 }
 
 TEST(WrapperTest, GetDefaultParametersTest1) {
@@ -265,15 +166,4 @@ TEST(WrapperTest, GetDefaultParametersTest1) {
   EXPECT_EQ(StorageHashTable::BitPackedFlatHashTable,
             params.storage_hash_table);
   EXPECT_EQ(0, params.num_setup_threads);
-}
-
-TEST(WrapperTest, GetDefaultParametersTest2) {
-  typedef SparseVector<float> Vec;
-
-  LSHConstructionParameters params = get_default_parameters<Vec>(
-      1000000, 100000, DistanceFunction::EuclideanSquared, true);
-
-  EXPECT_EQ(0, params.num_setup_threads);
-  EXPECT_EQ(StorageHashTable::BitPackedFlatHashTable,
-            params.storage_hash_table);
 }

@@ -185,34 +185,6 @@ class StaticCompositeHashTable
   }
 };
 
-template <typename KeyType, typename ValueType, typename InnerHashTable>
-class DynamicCompositeHashTable
-    : public BasicCompositeHashTable<KeyType, ValueType, InnerHashTable> {
- public:
-  DynamicCompositeHashTable(int_fast32_t l,
-                            typename InnerHashTable::Factory* factory)
-      : BasicCompositeHashTable<KeyType, ValueType, InnerHashTable>(l,
-                                                                    factory) {}
-
-  void insert(const std::vector<KeyType>& keys, ValueType value) {
-    if (static_cast<int_fast32_t>(keys.size()) != this->l_) {
-      throw CompositeHashTableError("Number of keys in insert incorrect.");
-    }
-    for (int_fast32_t ii = 0; ii < this->l_; ++ii) {
-      (this->tables_[ii])->insert(keys[ii], value);
-    }
-  }
-
-  void remove(const std::vector<KeyType>& keys, ValueType value) {
-    if (static_cast<int_fast32_t>(keys.size()) != this->l_) {
-      throw CompositeHashTableError("Number of hashes in remove incorrect.");
-    }
-    for (int_fast32_t ii = 0; ii < this->l_; ++ii) {
-      (this->tables_[ii])->remove(keys[ii], value);
-    }
-  }
-};
-
 }  // namespace core
 }  // namespace falconn
 

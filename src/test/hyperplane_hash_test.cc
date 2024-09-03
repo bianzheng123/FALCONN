@@ -15,7 +15,6 @@ namespace ft = falconn::test;
 using ft::count_bits;
 using fc::ArrayDataStorage;
 using fc::HyperplaneHashDense;
-using fc::HyperplaneHashSparse;
 using std::make_pair;
 using std::sort;
 using std::vector;
@@ -24,34 +23,6 @@ typedef HyperplaneHashDense<float>::VectorType DenseVector;
 typedef HyperplaneHashDense<float>::MatrixType MatrixType;
 typedef HyperplaneHashDense<float>::Query DenseQuery;
 typedef HyperplaneHashDense<float> HPHashDense;
-typedef HyperplaneHashSparse<float>::VectorType SparseVector;
-typedef HyperplaneHashSparse<float>::Query SparseQuery;
-typedef HyperplaneHashSparse<float> HPHashSparse;
-
-TEST(HyperplaneHashTest, SparseHyperplaneHashTest1) {
-  SparseVector v1;
-  v1.push_back(make_pair(0, 1.0));
-  SparseVector v2;
-  v2.push_back(make_pair(0, 1.0));
-  v2.push_back(make_pair(1, 0.001));
-  SparseVector v3;
-  v3.push_back(make_pair(0, 0.001));
-  v3.push_back(make_pair(1, 1.0));
-
-  int dim = 8;
-  int k = 3;
-  int l = 2;
-  uint64_t seed = 3425890;
-  HyperplaneHashSparse<float> hash(dim, k, l, seed);
-  vector<uint32_t> result1(l), result2(l), result3(l);
-  hash.hash(v1, &result1);
-  hash.hash(v2, &result2);
-  hash.hash(v3, &result3);
-  for (int ii = 0; ii < l; ++ii) {
-    ASSERT_EQ(result1[ii], result2[ii]);
-    ASSERT_NE(result1[ii], result3[ii]);
-  }
-}
 
 TEST(HyperplaneHashTest, DenseHyperplaneHashTest1) {
   DenseVector v1(4);
@@ -399,82 +370,6 @@ TEST(HyperplaneHashTest, DenseHyperplaneMultiProbeTest5) {
   }
 }
 
-TEST(HyperplaneHashTest, SparseHyperplaneMultiProbeTest1) {
-  SparseVector v1;
-  v1.push_back(make_pair(0, 1.0));
-  SparseVector v2;
-  v2.push_back(make_pair(0, 1.0));
-  v2.push_back(make_pair(1, 0.001));
-  SparseVector v3;
-  v3.push_back(make_pair(0, 0.001));
-  v3.push_back(make_pair(1, 1.0));
-
-  int dim = 8;
-  int k = 3;
-  int l = 2;
-  uint64_t seed = 890124523;
-
-  HyperplaneHashSparse<float> hash(dim, k, l, seed);
-  vector<uint32_t> hashes1(l), hashes2(l), hashes3(l);
-  hash.hash(v1, &hashes1);
-  hash.hash(v2, &hashes2);
-  hash.hash(v3, &hashes3);
-
-  SparseQuery query(hash);
-  vector<vector<uint32_t>> probes_by_table1, probes_by_table2, probes_by_table3;
-
-  query.get_probes_by_table(v1, &probes_by_table1, l);
-  for (int ii = 0; ii < l; ++ii) {
-    ASSERT_EQ(1u, probes_by_table1[ii].size());
-    ASSERT_EQ(probes_by_table1[ii][0], hashes1[ii]);
-  }
-  query.get_probes_by_table(v2, &probes_by_table2, l);
-  for (int ii = 0; ii < l; ++ii) {
-    ASSERT_EQ(1u, probes_by_table2[ii].size());
-    ASSERT_EQ(probes_by_table2[ii][0], hashes2[ii]);
-  }
-  query.get_probes_by_table(v3, &probes_by_table3, l);
-  for (int ii = 0; ii < l; ++ii) {
-    ASSERT_EQ(1u, probes_by_table3[ii].size());
-    ASSERT_EQ(probes_by_table3[ii][0], hashes3[ii]);
-  }
-
-  for (int ii = 0; ii < l; ++ii) {
-    ASSERT_EQ(probes_by_table1[ii][0], probes_by_table2[ii][0]);
-    ASSERT_NE(probes_by_table1[ii][0], probes_by_table3[ii][0]);
-  }
-}
-
-TEST(HyperplaneHashTest, SparseHyperplaneMultiProbeTest2) {
-  SparseVector v1;
-  v1.push_back(make_pair(0, 1.0));
-
-  int dim = 8;
-  int k = 3;
-  int l = 1;
-  uint64_t seed = 1294087;
-  HyperplaneHashSparse<float> hash(dim, k, l, seed);
-  SparseQuery query(hash);
-  vector<vector<uint32_t>> probes_by_table;
-
-  query.get_probes_by_table(v1, &probes_by_table, 8);
-  ASSERT_EQ(1u, probes_by_table.size());
-  ASSERT_EQ(8u, probes_by_table[0].size());
-
-  vector<uint32_t> hash_val;
-  hash.hash(v1, &hash_val);
-  ASSERT_EQ(1u, hash_val.size());
-  ASSERT_EQ(hash_val[0], probes_by_table[0][0]);
-
-  uint32_t bitdiff = probes_by_table[0][0] ^ probes_by_table[0][1];
-  ASSERT_EQ(1, count_bits(bitdiff));
-
-  sort(probes_by_table[0].begin(), probes_by_table[0].end());
-  for (unsigned int ii = 0; ii < 8; ++ii) {
-    ASSERT_EQ(ii, probes_by_table[0][ii]);
-  }
-}
-
 TEST(HyperplaneHashTest, DenseHyperplaneBatchHashTest1) {
   DenseVector v1(4);
   v1[0] = 1.0;
@@ -510,44 +405,6 @@ TEST(HyperplaneHashTest, DenseHyperplaneBatchHashTest1) {
   typedef ArrayDataStorage<DenseVector> BatchVectorType;
   BatchVectorType batch_data(vs);
   HPHashDense::BatchHash<BatchVectorType> bh(hash);
-  vector<uint32_t> hashes;
-  for (int ii = 0; ii < l; ++ii) {
-    bh.batch_hash_single_table(batch_data, ii, &hashes);
-    ASSERT_EQ(3u, hashes.size());
-    ASSERT_EQ(result1[ii], hashes[0]);
-    ASSERT_EQ(result2[ii], hashes[1]);
-    ASSERT_EQ(result3[ii], hashes[2]);
-  }
-}
-
-TEST(HyperplaneHashTest, SparseHyperplaneBatchHashTest1) {
-  SparseVector v1;
-  v1.push_back(make_pair(0, 1.0));
-  SparseVector v2;
-  v2.push_back(make_pair(0, 1.0));
-  v2.push_back(make_pair(1, 0.001));
-  SparseVector v3;
-  v3.push_back(make_pair(0, 0.001));
-  v3.push_back(make_pair(1, 1.0));
-
-  int dim = 8;
-  int k = 3;
-  int l = 2;
-  uint64_t seed = 3425890;
-  HyperplaneHashSparse<float> hash(dim, k, l, seed);
-  vector<uint32_t> result1(l), result2(l), result3(l);
-  hash.hash(v1, &result1);
-  hash.hash(v2, &result2);
-  hash.hash(v3, &result3);
-  for (int ii = 0; ii < l; ++ii) {
-    ASSERT_EQ(result1[ii], result2[ii]);
-    ASSERT_NE(result1[ii], result3[ii]);
-  }
-
-  vector<SparseVector> vs = {v1, v2, v3};
-  typedef ArrayDataStorage<SparseVector> BatchVectorType;
-  BatchVectorType batch_data(vs);
-  HPHashSparse::BatchHash<BatchVectorType> bh(hash);
   vector<uint32_t> hashes;
   for (int ii = 0; ii < l; ++ii) {
     bh.batch_hash_single_table(batch_data, ii, &hashes);

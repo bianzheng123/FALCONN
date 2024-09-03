@@ -69,13 +69,9 @@ target_include_directories(bench PRIVATE src/include external/eigen)
 
 enable_testing()
 
-add_executable(lsh_table_test src/test/lsh_table_test.cc)
-target_include_directories(lsh_table_test PRIVATE src/include external/eigen)
-target_link_libraries(lsh_table_test GTest::gtest_main)
-
-add_executable(nn_query_test src/test/nn_query_test.cc)
-target_include_directories(nn_query_test PRIVATE src/include external/eigen)
-target_link_libraries(nn_query_test GTest::gtest_main)
+#add_executable(nn_query_test src/test/nn_query_test.cc)
+#target_include_directories(nn_query_test PRIVATE src/include external/eigen)
+#target_link_libraries(nn_query_test GTest::gtest_main)
 
 add_executable(glove src/examples/glove/glove.cc)
 target_include_directories(glove PRIVATE src/include external/eigen)

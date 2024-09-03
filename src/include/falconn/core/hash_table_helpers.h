@@ -4,14 +4,14 @@
 #include "../falconn_global.h"
 
 namespace falconn {
-namespace core {
+    namespace core {
 
-class HashTableError : public FalconnError {
- public:
-  HashTableError(const char* msg) : FalconnError(msg) {}
-};
+        class HashTableError : public FalconnError {
+        public:
+            HashTableError(const char *msg) : FalconnError(msg) {}
+        };
 
-}  // namespace core
+    }  // namespace core
 }  // namespace falconn
 
 #endif

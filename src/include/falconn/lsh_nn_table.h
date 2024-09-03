@@ -197,7 +197,7 @@ class LSHNearestNeighborQueryPool {
 /// Common interface shared by all LSH table wrappers.
 ///
 /// The template parameter PointType should be one of the two point types
-/// introduced above (DenseVector and SparseVector), e.g., DenseVector<float>.
+/// introduced above (DenseVector), e.g., DenseVector<float>.
 ///
 /// The KeyType template parameter is optional and the default int32_t is
 /// sufficient for up to 10^9 points.
@@ -306,18 +306,7 @@ enum class StorageHashTable {
   /// larger than the number of points (in which case we recommend to use
   /// LinearProbingHashTable).
   ///
-  BitPackedFlatHashTable = 2,
-  ///
-  /// Here, std::unordered_map is used. One table takes space O(#points), but
-  /// the leading constant is much higher than that of bucket-based approaches.
-  ///
-  STLHashTable = 3,
-  ///
-  /// The same as STLHashTable, but the custom implementation based on
-  /// *linear probing* is used. This option is recommended if the number of
-  /// bins is much higher than the number of points.
-  ///
-  LinearProbingHashTable = 4
+  BitPackedFlatHashTable = 2
 };
 
 ///
