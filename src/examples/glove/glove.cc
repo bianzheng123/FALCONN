@@ -67,8 +67,6 @@ using falconn::QueryStatistics;
 using falconn::StorageHashTable;
 using falconn::get_default_parameters;
 
-typedef DenseVector<float> Point;
-
 const string FILE_NAME = "dataset/glove.6B.50d.dat";
 const int NUM_QUERIES = 1000;
 const int SEED = 4057218;
@@ -79,7 +77,7 @@ const int NUM_HASH_BITS = 18;
  * An auxiliary function that reads a point from a binary file that is produced
  * by a script 'prepare-dataset.sh'
  */
-bool read_point(FILE *file, Point *point) {
+bool read_point(FILE *file, DenseVector<float> *point) {
     int d;
     if (fread(&d, sizeof(int), 1, file) != 1) {
         return false;
@@ -100,12 +98,12 @@ bool read_point(FILE *file, Point *point) {
  * An auxiliary function that reads a dataset from a binary file that is
  * produced by a script 'prepare-dataset.sh'
  */
-void read_dataset(string file_name, vector<Point> *dataset) {
+void read_dataset(string file_name, vector<DenseVector<float>> *dataset) {
     FILE *file = fopen(file_name.c_str(), "rb");
     if (!file) {
         throw runtime_error("can't open the file with the dataset");
     }
-    Point p;
+    DenseVector<float> p;
     dataset->clear();
     while (read_point(file, &p)) {
         dataset->push_back(p);
@@ -118,7 +116,7 @@ void read_dataset(string file_name, vector<Point> *dataset) {
 /*
  * Normalizes the dataset.
  */
-void normalize(vector<Point> *dataset) {
+void normalize(vector<DenseVector<float>> *dataset) {
     for (auto &p: *dataset) {
         p.normalize();
     }
@@ -128,7 +126,7 @@ void normalize(vector<Point> *dataset) {
  * Chooses a random subset of the dataset to be the queries. The queries are
  * taken out of the dataset.
  */
-void gen_queries(vector<Point> *dataset, vector<Point> *queries) {
+void gen_queries(vector<DenseVector<float>> *dataset, vector<DenseVector<float>> *queries) {
     mt19937_64 gen(SEED);
     queries->clear();
     for (int i = 0; i < NUM_QUERIES; ++i) {
@@ -143,7 +141,7 @@ void gen_queries(vector<Point> *dataset, vector<Point> *queries) {
 /*
  * Generates answers for the queries using the (optimized) linear scan.
  */
-void gen_answers(const vector<Point> &dataset, const vector<Point> &queries,
+void gen_answers(const vector<DenseVector<float>> &dataset, const vector<DenseVector<float>> &queries,
                  vector<int> *answers) {
     answers->resize(queries.size());
     int outer_counter = 0;
@@ -165,10 +163,10 @@ void gen_answers(const vector<Point> &dataset, const vector<Point> &queries,
 /*
  * Computes the probability of success using a given number of probes.
  */
-double evaluate_num_probes(LSHNearestNeighborTable<Point> *table,
-                           const vector<Point> &queries,
+double evaluate_num_probes(LSHNearestNeighborTable<DenseVector<float>> *table,
+                           const vector<DenseVector<float>> &queries,
                            const vector<int> &answers, int num_probes) {
-    unique_ptr<LSHNearestNeighborQuery<Point>> query_object =
+    unique_ptr<LSHNearestNeighborQuery<DenseVector<float>>> query_object =
             table->construct_query_object(num_probes);
     int outer_counter = 0;
     int num_matches = 0;
@@ -192,9 +190,9 @@ double evaluate_num_probes(LSHNearestNeighborTable<Point> *table,
  * measure the time.
  */
 pair<double, QueryStatistics> evaluate_query_time(
-        LSHNearestNeighborTable<Point> *table, const vector<Point> &queries,
+        LSHNearestNeighborTable<DenseVector<float>> *table, const vector<DenseVector<float>> &queries,
         const vector<int> &answers, int num_probes) {
-    unique_ptr<LSHNearestNeighborQuery<Point>> query_object =
+    unique_ptr<LSHNearestNeighborQuery<DenseVector<float>>> query_object =
             table->construct_query_object(num_probes);
     query_object->reset_query_statistics();
     int outer_counter = 0;
@@ -213,8 +211,8 @@ pair<double, QueryStatistics> evaluate_query_time(
  * Finds the smallest number of probes that gives the probability of success
  * at least 0.9 using binary search.
  */
-int find_num_probes(LSHNearestNeighborTable<Point> *table,
-                    const vector<Point> &queries, const vector<int> &answers,
+int find_num_probes(LSHNearestNeighborTable<DenseVector<float>> *table,
+                    const vector<DenseVector<float>> &queries, const vector<int> &answers,
                     int start_num_probes) {
     int num_probes = start_num_probes;
     for (;;) {
@@ -245,7 +243,7 @@ int find_num_probes(LSHNearestNeighborTable<Point> *table,
 
 int main() {
     try {
-        vector<Point> dataset, queries;
+        vector<DenseVector<float>> dataset, queries;
         vector<int> answers;
 
         // read the dataset
@@ -259,7 +257,7 @@ int main() {
         cout << "done" << endl;
 
         // find the center of mass
-        Point center = dataset[0];
+        DenseVector<float> center = dataset[0];
         for (size_t i = 1; i < dataset.size(); ++i) {
             center += dataset[i];
         }
@@ -295,7 +293,7 @@ int main() {
         params.lsh_family = LSHFamily::Hyperplane;
         params.l = NUM_HASH_TABLES;
         params.distance_function = DistanceFunction::EuclideanSquared;
-        compute_number_of_hash_functions<Point>(NUM_HASH_BITS, &params);
+        compute_number_of_hash_functions<DenseVector<float>>(NUM_HASH_BITS, &params);
         // we want to use all the available threads to set up
         params.num_setup_threads = 0;
         params.storage_hash_table = StorageHashTable::BitPackedFlatHashTable;
@@ -303,14 +301,14 @@ int main() {
           For an easy way out, you could have used the following.
 
           LSHConstructionParameters params
-            = get_default_parameters<Point>(dataset.size(),
+            = get_default_parameters<DenseVector<float>>(dataset.size(),
                                        dataset[0].size(),
                                        DistanceFunction::EuclideanSquared,
                                        true);
         */
         cout << "building the index based on the cross-polytope LSH" << endl;
         t1 = high_resolution_clock::now();
-        auto table = construct_table<Point>(dataset, params);
+        auto table = construct_table<DenseVector<float>>(dataset, params);
         t2 = high_resolution_clock::now();
         elapsed_time = duration_cast<duration<double>>(t2 - t1).count();
         cout << "done" << endl;
