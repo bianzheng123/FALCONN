@@ -368,7 +368,7 @@ int main() {
     compute_number_of_hash_functions<Point>(NUM_HASH_BITS, &params);
     // we want to use all the available threads to set up
     params.num_setup_threads = 0;
-    params.storage_hash_table = StorageHashTable::BitPackedFlatHashTable;
+    params.storage_hash_table = StorageHashTable::FlatHashTable;
     /*
       For an easy way out, you could have used the following.
 

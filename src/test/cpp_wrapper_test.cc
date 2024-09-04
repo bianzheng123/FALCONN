@@ -87,7 +87,7 @@ TEST(WrapperTest, DenseHPTest1) {
   params.dimension = dim;
   params.lsh_family = LSHFamily::Hyperplane;
   params.distance_function = DistanceFunction::EuclideanSquared;
-  params.storage_hash_table = StorageHashTable::BitPackedFlatHashTable;
+  params.storage_hash_table = StorageHashTable::FlatHashTable;
   params.k = 2;
   params.l = 4;
   params.num_setup_threads = 0;
@@ -101,7 +101,7 @@ TEST(WrapperTest, DenseCPTest1) {
   params.dimension = dim;
   params.lsh_family = LSHFamily::Hyperplane;
   params.distance_function = DistanceFunction::EuclideanSquared;
-  params.storage_hash_table = StorageHashTable::BitPackedFlatHashTable;
+  params.storage_hash_table = StorageHashTable::FlatHashTable;
   params.k = 2;
   params.l = 8;
   params.num_setup_threads = 0;
@@ -116,20 +116,6 @@ TEST(WrapperTest, FlatHashTableTest1) {
   params.lsh_family = LSHFamily::Hyperplane;
   params.distance_function = DistanceFunction::EuclideanSquared;
   params.storage_hash_table = StorageHashTable::FlatHashTable;
-  params.k = 2;
-  params.l = 4;
-  params.num_setup_threads = 0;
-
-  basic_test_dense_1(params);
-}
-
-TEST(WrapperTest, BitPackedFlatHashTableTest1) {
-  int dim = 4;
-  LSHConstructionParameters params;
-  params.dimension = dim;
-  params.lsh_family = LSHFamily::Hyperplane;
-  params.distance_function = DistanceFunction::EuclideanSquared;
-  params.storage_hash_table = StorageHashTable::BitPackedFlatHashTable;
   params.k = 2;
   params.l = 4;
   params.num_setup_threads = 0;
@@ -163,7 +149,7 @@ TEST(WrapperTest, GetDefaultParametersTest1) {
   EXPECT_EQ(DistanceFunction::EuclideanSquared, params.distance_function);
   EXPECT_EQ(LSHFamily::Hyperplane, params.lsh_family);
   EXPECT_EQ(3, params.k);
-  EXPECT_EQ(StorageHashTable::BitPackedFlatHashTable,
+  EXPECT_EQ(StorageHashTable::FlatHashTable,
             params.storage_hash_table);
   EXPECT_EQ(0, params.num_setup_threads);
 }

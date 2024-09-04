@@ -8,7 +8,6 @@
 
 #include "data_storage_adapter.h"
 
-#include "../core/bit_packed_flat_hash_table.h"
 #include "../core/composite_hash_table.h"
 #include "../core/data_storage.h"
 #include "../core/euclidean_distance.h"
@@ -115,7 +114,7 @@ namespace falconn {
 
 
                 result.l = 10;
-                result.storage_hash_table = StorageHashTable::BitPackedFlatHashTable;
+                result.storage_hash_table = StorageHashTable::FlatHashTable;
                 result.num_setup_threads = 0;
 
                 int_fast32_t number_of_hash_bits = 1;
@@ -546,19 +545,6 @@ namespace falconn {
                     typedef core::FlatHashTable<HashType> HashTable;
                     std::unique_ptr<typename HashTable::Factory> factory(
                             new typename HashTable::Factory(1 << num_bits_));
-
-                    typedef core::StaticCompositeHashTable<HashType, KeyType, HashTable>
-                            CompositeTable;
-                    std::unique_ptr<CompositeTable> composite_table(
-                            new CompositeTable(params_.l, factory.get()));
-                    setup4(std::tuple_cat(std::move(vals),
-                                          std::make_tuple(std::move(factory)),
-                                          std::make_tuple(std::move(composite_table))));
-                } else if (params_.storage_hash_table ==
-                           StorageHashTable::BitPackedFlatHashTable) {
-                    typedef core::BitPackedFlatHashTable<HashType> HashTable;
-                    std::unique_ptr<typename HashTable::Factory> factory(
-                            new typename HashTable::Factory(1 << num_bits_, n_));
 
                     typedef core::StaticCompositeHashTable<HashType, KeyType, HashTable>
                             CompositeTable;
